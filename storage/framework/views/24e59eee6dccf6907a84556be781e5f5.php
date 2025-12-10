@@ -1,0 +1,212 @@
+<?php $__env->startSection('seodetails'); ?>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('title', "Welcome to Digital Bangladesh Legal Decisions"); ?>
+<?php $__env->startSection('content'); ?>
+<section class="service-sec service-v2-sec service-inner-sec section-padding">
+    <div class="container">
+        <div class="registration-container">
+            <div class="bld-header">
+                <div class="logo-text">BLD</div>
+                <div class="sub-text">Digital BLD</div>
+                <p class="register-steps">Register to BLD platform by following 3 steps</p>
+            </div>
+
+            <div class="progress-indicator">
+                <div class="progress-step active" data-step="1">
+                    <div class="progress-step-number">1</div>
+                    <div class="progress-step-label">User Information</div>
+                </div>
+                <div class="progress-step active" data-step="2">
+                    <div class="progress-step-number">2</div>
+                    <div class="progress-step-label">Verification</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="progress-step-number">3</div>
+                    <div class="progress-step-label">Password Set</div>
+                </div>
+                <div class="progress-line">
+                    <div class="progress-line-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="form-step-content">
+
+
+                <!-- Form Content (Dynamically switch steps) -->
+
+                <!-- Step 2: Verification -->
+                <div id="step2Content">
+                    <p class="text-center mb-4">Enter the 6-digit that we have sent via the email address</p>
+
+                    <div class="otp-timer">
+                        <i class="bi bi-clock-fill"></i>
+                        <span id="timerDisplay">00:00</span>
+                    </div>
+                    <form id="registrationForm" method="POST" action="<?php echo e(route('subscriber.verifyOtp')); ?>">
+                        <?php echo csrf_field(); ?>
+                        <div class="otp-input-group">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                            <input type="text" class="form-control otp-input" maxlength="1" inputmode="numeric">
+                        </div>
+                        <?php if($errors->any()): ?>
+                        <div style="color: red; text-align:center">
+                            <ul>
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </ul>
+                        </div>
+                        <?php endif; ?>
+                        <!-- Hidden field to combine OTP -->
+                        <input type="hidden" name="otp" id="combinedOtp">
+
+                        <div class="d-flex justify-content-center mt-3">
+                            <button type="submit" class="btn btn-next">Next</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3 d-none" id="resendOtpArea">
+                        <form action="<?php echo e(route('subscriber.otp.resend')); ?>" method="POST" id="resendOtpForm">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="redirect" value="subscriber.otp">
+                            <input type="hidden" name="type" value="registration">
+                            <div id="resendOtpBtn" class="see-more d-block mb-2">
+                                Didn`t receive the code?
+                                <button type="submit" id="resendBtn" class="text-primary"
+                                    style="background:none; border:none; font-weight:bold">
+                                    Resend OTP
+                                </button>
+                            </div>
+                        </form>
+                        <!-- <span id="resendOtpStatus" class="text-success d-none">OTP resent successfully.</span> -->
+                    </div>
+
+                </div>
+
+
+
+
+                <?php echo $__env->make('auth.subscribers._register-footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+<?php $__env->stopSection(); ?>
+<?php $__env->startPush('scripts'); ?>
+<script>
+    // console.log('times', <?php echo e($remainingSeconds); ?>)
+    let timeLeft = <?php echo e($remainingSeconds ?? 300); ?>;
+
+    function otpTimes() {
+        function formatTime(seconds) {
+            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const resendOtpArea = document.getElementById('resendOtpArea');
+
+        if (timeLeft <= 0) {
+            timerDisplay.textContent = '00:00';
+        } else {
+            timerDisplay.textContent = formatTime(timeLeft);
+        }
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerDisplay.textContent = "Expired";
+                if (resendOtpArea) {
+                    resendOtpArea.classList.remove('d-none');
+                    resendOtpArea.classList.add('d-block');
+                }
+            } else {
+                timerDisplay.textContent = formatTime(timeLeft);
+            }
+        }, 1000);
+    }
+
+    let resendFunc = () => {
+            const form = document.getElementById('resendOtpForm');
+            const button = document.getElementById('resendBtn');
+
+            form.addEventListener('submit', function () {
+                button.disabled = true;
+                button.innerText = 'Sending...'; // Optional
+            });
+        }
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        otpTimes()
+        resendFunc()
+        const inputs = document.querySelectorAll(".otp-input");
+        const hiddenInput = document.getElementById("combinedOtp");
+
+        inputs.forEach((input, index) => {
+            input.addEventListener("input", function(e) {
+                const value = input.value.trim();
+
+                // Handle paste (fallback for some browsers)
+                if (e.inputType === "insertFromPaste" || value.length > 1) {
+                    const pasted = value;
+                    if (pasted.length === 6 && /^\d+$/.test(pasted)) {
+                        pasted.split("").forEach((char, i) => {
+                            if (inputs[i]) inputs[i].value = char;
+                        });
+                        updateHiddenOtp();
+                        inputs[5].focus();
+                    }
+                    return;
+                }
+
+                // Move to next input
+                if (value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+
+                updateHiddenOtp();
+            });
+
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            // Better paste handling for all browsers
+            input.addEventListener("paste", function(e) {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData("text").trim();
+                if (/^\d{6}$/.test(paste)) {
+                    paste.split("").forEach((char, i) => {
+                        if (inputs[i]) inputs[i].value = char;
+                    });
+                    updateHiddenOtp();
+                    inputs[5].focus();
+                }
+            });
+        });
+
+        function updateHiddenOtp() {
+            const otp = Array.from(inputs).map(input => input.value).join("");
+            if (hiddenInput) hiddenInput.value = otp;
+        }
+    });
+</script>
+
+
+
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/bldlegalized/public_html/resources/views/auth/subscribers/otp.blade.php ENDPATH**/ ?>
